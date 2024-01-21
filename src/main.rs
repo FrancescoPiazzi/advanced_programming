@@ -18,6 +18,7 @@ mod ar_sheet3_again;
 mod as_sheet4;
 mod at_sheet5;
 mod au_sheet6;
+mod av_sparring_with_copilot;
 
 
 fn main() {
