@@ -105,10 +105,39 @@ impl<T: Debug> List<T>{
     }
 
     fn pop(&mut self) -> Option<T> {
+        let head_node = self.head.take()?;
+        if let Some(ref new_head) = head_node.borrow().next {
+            new_head.as_ref().borrow_mut().prev = None;
+            self.head = Some(new_head.clone());
+        } else {
+            self.head = None;
+            self.tail = None;
+        }
+        self.size -= 1;
+        Some(Rc::try_unwrap(head_node).ok()?.into_inner().value)
+    }
+
+    fn push_back(&mut self, el: T){
+        let new_node = Rc::new(RefCell::new(Node::new(el)));
+        match self.tail.take(){
+            Some(old_tail) => {
+                old_tail.as_ref().borrow_mut().next = Some(new_node.clone());
+                new_node.as_ref().borrow_mut().prev = Some(old_tail);
+                self.tail = Some(new_node);
+            },
+            None => {
+                self.head = Some(new_node.clone());
+                self.tail = Some(new_node.clone());
+            }
+        }
+        self.size += 1;
+    }
+
+    fn pop_back(&mut self) -> Option<T> {
         let tail_node = self.tail.take()?;
-        if let Some(ref prev_node) = tail_node.borrow().prev {
-            prev_node.as_ref().borrow_mut().next = None;
-            self.tail = Some(prev_node.clone());
+        if let Some(ref new_tail) = tail_node.borrow().prev {
+            new_tail.as_ref().borrow_mut().next = None;
+            self.tail = Some(new_tail.clone());
         } else {
             self.head = None;
             self.tail = None;
@@ -116,7 +145,6 @@ impl<T: Debug> List<T>{
         self.size -= 1;
         Some(Rc::try_unwrap(tail_node).ok()?.into_inner().value)
     }
-
 
 }
 
@@ -203,23 +231,44 @@ mod tests {
 
 
     #[test]
-    fn test_list_push() {
-        let mut list = List::new();
+    fn test_push() {
+        let mut list = List::new(); // 15 10 5
         list.push(5);
-        list.push(6);
-        list.push(7);
-        assert_eq!(format!("{:?}", list), "765");
+        list.push(10);
+        list.push(15);
+        assert_eq!(format!("{:?}", list), "15105");
     }
 
     #[test]
-    fn test_list_pop() {
-        let mut list = List::new();
-        list.push(5);
-        list.push(6);
-        list.push(7);
+    fn test_pop() {
+        let mut list = List::new(); // 5 10 15
+        list.push_back(5);
+        list.push_back(10);
+        list.push_back(15);
         assert_eq!(list.pop(), Some(5));
-        assert_eq!(list.pop(), Some(6));
-        assert_eq!(list.pop(), Some(7));
+        assert_eq!(list.pop(), Some(10));
+        assert_eq!(list.pop(), Some(15));
         assert_eq!(list.pop(), None);
+    }
+
+    #[test]
+    fn test_push_back() {
+        let mut list = List::new(); // 5 10 15
+        list.push_back(5);
+        list.push_back(10);
+        list.push_back(15);
+        assert_eq!(format!("{:?}", list), "51015");
+    }
+
+    #[test]
+    fn test_pop_back() {
+        let mut list = List::new(); // 5 10 15
+        list.push_back(5);
+        list.push_back(10);
+        list.push_back(15);
+        assert_eq!(list.pop_back(), Some(15));
+        assert_eq!(list.pop_back(), Some(10));
+        assert_eq!(list.pop_back(), Some(5));
+        assert_eq!(list.pop_back(), None);
     }
 }
