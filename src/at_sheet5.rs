@@ -38,6 +38,11 @@ fn myprint<T: Printable>(x: T){
 }
 
 
+// 2: Define a struct Book with a title and a category (enum with Fantasy and Horror variants).
+// Define a struct Library with a fixed size array of 10 bookcases, each containing a Vec of books.
+// Implement a method populate for Library that fills each bookcase with 3 books.
+// Implement a default method for Book
+
 #[derive(Debug, Default)]
 enum Category{
     #[default]
